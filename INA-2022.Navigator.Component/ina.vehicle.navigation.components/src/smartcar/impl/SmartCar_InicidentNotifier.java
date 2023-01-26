@@ -96,22 +96,30 @@ public class SmartCar_InicidentNotifier implements MqttCallback {
 	}
 	
 	
-	public void alert(String smartCarID, String notificationType, RoadPlace place) {
+	public void alert(String smartCarID, String notificationType, RoadPlace place, int position) {
 
 		String myTopic =  "es/upv/pros/tatami/smartcities/traffic/PTPaterna/road/" + place.getRoad() + "/alerts";
 		MqttTopic topic = myClient.getTopic(myTopic);
 
-
+		long timestamp = System.currentTimeMillis();
 		// publish incident
 		JSONObject pubMsg = new JSONObject();
+		JSONObject msgMsg = new JSONObject();
 		try {
-			pubMsg.put("vehicle", smartCarID);
-			pubMsg.put("event", notificationType);
-			pubMsg.put("road", place.getRoad());
-			pubMsg.put("kp", place.getKm());
-	   		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			msgMsg.put("vehicle", smartCarID);
+			msgMsg.put("event", notificationType);
+			msgMsg.put("id", "ACCIDENT_"+smartCarID+"_"+timestamp);
+			msgMsg.put("rt", "accidente");
+			msgMsg.put("road-segment", place.getRoad());
+			msgMsg.put("position", position);
+			
+			pubMsg.put("msg", msgMsg);
+			pubMsg.put("id", "MSG_"+timestamp);
+			pubMsg.put("type", "ACCIDENT");
+			pubMsg.put("timestamp", timestamp);
+   		} catch (JSONException e1) {
+   			// TODO Auto-generated catch block
+   			e1.printStackTrace();
 		}
 		
    		int pubQoS = 0;

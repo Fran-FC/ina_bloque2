@@ -53,7 +53,13 @@ public class SmartRoad_RoadIncidentsSubscriber implements MqttCallback {
 		System.out.println("-------------------------------------------------");
 		
 		// DO SOME MAGIC HERE!
-		//this.road.notify(payload); //Notificar alerta
+		JSONObject pubMsg = new JSONObject();
+		JSONObject msgMsg = new JSONObject();
+		
+		msgMsg.put("code", this.road.getId());
+//		msgMsg.put("density", this.road.)
+		
+		this.road.notify(pubMsg.toString()); //Notificar alerta
 		
 	}
 

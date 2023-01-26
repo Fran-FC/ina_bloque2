@@ -13,6 +13,7 @@ public class SmartVehicle extends SmartCar
 	protected Navigator navigator;
 	protected SmartCar_StepSubscriber stepSubscriber = null;
 	protected int speed;
+	protected String current_action;
 	
 	public SmartVehicle(String id, String rol, int speed, int p_inicio, int p_fin)
 	{
@@ -20,6 +21,7 @@ public class SmartVehicle extends SmartCar
 		
 		this.rol = rol;
 		this.speed = speed;
+		this.current_action = "VEHICLE_IN";
 		
 		this.stepSubscriber = new SmartCar_StepSubscriber(this);
 		this.stepSubscriber.connect();
@@ -34,9 +36,58 @@ public class SmartVehicle extends SmartCar
 		
 		this.navigator.setRoute(r);
 	}
+	
+	public int getSpeed()
+	{
+		if(this.rol.equals("Ambulance") || this.rol.equals("Police"))
+			return this.speed;
+//		• la velocidad máxima (actual) del road-segment
+//		• si existe una señal de tráfico de tipo speed-limit que afecta a la posición en la
+//		que estamos TODO
+//		• la velocidad de crucero establecida
+		int maxSpeedSegment = this.navigator.getCurrentRoadSegment().getCurrentMaxSpeed();
+//		int speedLimitSignal
+		
+		return maxSpeedSegment < this.speed ? maxSpeedSegment : this.speed;
+	}
 
+	@Override
+	public void changeRoad(String road, int km) {
+		this.getCurrentPlace().setRoad(road);
+		this.getCurrentPlace().setKm(km);
+		
+		this.current_action = "VEHICLE_OUT";
+	}
+	
+	public void setCurrentAction(String action)
+	{
+		this.current_action = action;
+	}
+	
+	public String getCurrentAction()
+	{
+		return this.current_action;
+	}
+	
+	public String getSmartVehicleRole()
+	{
+		return this.rol;
+	}
+	
 	public void navigatorMove(long milliseconds)
 	{
-		this.navigator.move(milliseconds, this.speed);
+		this.navigator.move(milliseconds, this.getSpeed());
+	}
+	
+	public int getCurrentPosition()
+	{
+		return this.navigator.getCurrentPosition().getPosition();
+	}
+	
+	public void notifyIncident(String incidentType) {
+		if ( this.notifier == null )
+			return;
+		
+		this.notifier.alert(this.getSmartCarID(), incidentType, this.getCurrentPlace(), this.getCurrentPosition());
 	}
 }

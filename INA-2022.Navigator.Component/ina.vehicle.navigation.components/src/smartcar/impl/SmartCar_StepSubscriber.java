@@ -1,5 +1,8 @@
 package smartcar.impl;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Random;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -8,6 +11,7 @@ import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SmartCar_StepSubscriber implements MqttCallback {
@@ -48,11 +52,6 @@ public class SmartCar_StepSubscriber implements MqttCallback {
 		
 		String payload = new String(message.getPayload());
 		
-		System.out.println("-------------------------------------------------");
-		System.out.println("| Topic:" + topic);
-		System.out.println("| Message: " + payload);
-		System.out.println("-------------------------------------------------");
-		
 		JSONObject jsonPayload = new JSONObject(payload);
 		// DO SOME MAGIC HERE!
 		String actualTimeStamp = jsonPayload.getString("timestamp");
@@ -63,8 +62,50 @@ public class SmartCar_StepSubscriber implements MqttCallback {
 			smartvehicle.navigatorMove(time);
 	
 		previousTimestamp = Integer.parseInt(actualTimeStamp);
-	}
 
+		this.publishTraffic(smartvehicle.getCurrentPlace().getRoad(), 
+				smartvehicle.getCurrentPosition(), 
+				smartvehicle.getCurrentAction());
+		
+		if (smartvehicle.getCurrentAction().equals("VEHICLE_OUT"))
+		{
+			smartvehicle.setCurrentAction("VEHICLE_IN");
+			this.publishTraffic(smartvehicle.getCurrentPlace().getRoad(), 
+					smartvehicle.getCurrentPosition(), 
+					smartvehicle.getCurrentAction());
+		}
+	}
+	
+	public void publishTraffic(String roadSegment, int position, String action) throws JSONException
+	{
+		String topic = "es/upv/pros/tatami/smartcities/traffic/PTPaterna/road/" + roadSegment + "/traffic";
+		JSONObject msg1 =new JSONObject();
+		JSONObject msg2 = new JSONObject();
+		
+		Random random = new Random();
+		
+		msg2.put("action", action);
+		msg2.put("vehicle-role", smartvehicle.getSmartVehicleRole());
+		msg2.put("vehicle-id", smartvehicle.getSmartCarID());
+		msg2.put("road-segment", roadSegment);
+		msg2.put("position", position);
+		
+		msg1.put("msg", msg2);
+		msg1.put("id", "MSG_"+ random.ints(1, 1, 999999990));
+		msg1.put("timestamp", System.currentTimeMillis());
+		msg1.put("type", "TRAFFIC");
+		
+		MqttMessage messagePublish = new MqttMessage();
+		messagePublish.setPayload(msg1.toString().getBytes());
+
+		try {
+			myClient.publish(topic, messagePublish);
+		} catch (MqttException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * 
 	 * runClient

@@ -14,8 +14,6 @@ public class SmartCar {
 	
 	protected SmartCar_InicidentNotifier notifier = null;
 	
-	
-	
 	public SmartCar(String id) {
 		this.setSmartCarID(id);
 		
@@ -51,13 +49,7 @@ public class SmartCar {
 		this.getCurrentPlace().setKm(km);
 	}
 	
-	public void notifyIncident(String incidentType) {
-		if ( this.notifier == null )
-			return;
-		
-		this.notifier.alert(this.getSmartCarID(), incidentType, this.getCurrentPlace());
-		
-	}
+
 
 }
 
