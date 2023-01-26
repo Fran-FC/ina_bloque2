@@ -9,12 +9,12 @@ public class SmartRoad {
 	protected SmartRoad_InicidentNotifier notifier = null;
 	protected SmartRoad_RoadIncidentsSubscriber subscriber  = null;
 	protected String id = null;
-	protected ArrayList<RoadSegment> roadSegments = null;
+//	protected ArrayList<RoadSegment> roadSegments = null;
 	
-	public SmartRoad(String id, ArrayList<RoadSegment> rs) {
+	public SmartRoad(String id) {
 		this.setId(id);
 		
-		this.roadSegments = rs;
+//		this.roadSegments = rs;
 		
 		this.subscriber = new SmartRoad_RoadIncidentsSubscriber(this);
 		this.subscriber.connect();
